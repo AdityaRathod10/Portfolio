@@ -1,14 +1,28 @@
-import React, { Suspense, useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import React, { Suspense, useEffect, useState, useRef } from "react";
+import { Canvas} from "@react-three/fiber";
 import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
-
 import CanvasLoader from "../Loader";
 
 const Computers = ({ isMobile }) => {
   const computer = useGLTF("./desktop_pc/scene.gltf");
+  const meshRef = useRef();
+
+  // Optimize model for mobile
+  useEffect(() => {
+    if (isMobile) {
+      computer.scene.traverse((child) => {
+        if (child.isMesh) {
+          child.material.precision = 'lowp';
+          child.material.roughness = Math.min(child.material.roughness, 0.8);
+          child.material.metalness = Math.min(child.material.metalness, 0.5);
+        }
+      });
+    }
+  }, [isMobile, computer.scene]);
+
 
   return (
-    <mesh>
+    <mesh ref={meshRef}>
       <hemisphereLight intensity={1.5} groundColor='white' />
       <ambientLight intensity={1.5} />
       <spotLight
@@ -34,21 +48,15 @@ const ComputersCanvas = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Add a listener for changes to the screen size
     const mediaQuery = window.matchMedia("(max-width: 500px)");
-
-    // Set the initial value of the `isMobile` state variable
     setIsMobile(mediaQuery.matches);
 
-    // Define a callback function to handle changes to the media query
     const handleMediaQueryChange = (event) => {
       setIsMobile(event.matches);
     };
 
-    // Add the callback function as a listener for changes to the media query
     mediaQuery.addEventListener("change", handleMediaQueryChange);
 
-    // Remove the listener when the component is unmounted
     return () => {
       mediaQuery.removeEventListener("change", handleMediaQueryChange);
     };
@@ -58,8 +66,11 @@ const ComputersCanvas = () => {
     <Canvas
       frameloop='demand'
       shadows
-      dpr={[1, 2]}
-      camera={{ position: [20, 3, 5], fov: 25 }}
+      dpr={[1, isMobile ? 1.5 : 2]}
+      camera={{ 
+        position: isMobile ? [10, 2, 5] : [20, 3, 5], 
+        fov: isMobile ? 35 : 25 
+      }}
       gl={{ preserveDrawingBuffer: true }}
     >
       <Suspense fallback={<CanvasLoader />}>
@@ -67,6 +78,8 @@ const ComputersCanvas = () => {
           enableZoom={false}
           maxPolarAngle={Math.PI / 2}
           minPolarAngle={Math.PI / 2}
+          enablePan={!isMobile}
+          enableRotate={!isMobile}
         />
         <Computers isMobile={isMobile} />
       </Suspense>
@@ -77,3 +90,4 @@ const ComputersCanvas = () => {
 };
 
 export default ComputersCanvas;
+
