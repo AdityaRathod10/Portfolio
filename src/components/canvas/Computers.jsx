@@ -1,7 +1,8 @@
 import React, { Suspense, useEffect, useState, useRef } from "react";
-import { Canvas} from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
 import CanvasLoader from "../Loader";
+import * as THREE from 'three'; // Make sure to import THREE
 
 const Computers = ({ isMobile }) => {
   const computer = useGLTF("./desktop_pc/scene.gltf");
@@ -12,14 +13,18 @@ const Computers = ({ isMobile }) => {
     if (isMobile) {
       computer.scene.traverse((child) => {
         if (child.isMesh) {
-          child.material.precision = 'lowp';
-          child.material.roughness = Math.min(child.material.roughness, 0.8);
-          child.material.metalness = Math.min(child.material.metalness, 0.5);
+          // Lower texture quality for mobile devices
+          if (child.material.map) {
+            child.material.map.minFilter = THREE.LinearFilter;
+            child.material.map.generateMipmaps = false;
+          }
+          // Reduce complexity by lowering material properties
+          child.material.roughness = Math.min(child.material.roughness, 0.6);
+          child.material.metalness = Math.min(child.material.metalness, 0.4);
         }
       });
     }
   }, [isMobile, computer.scene]);
-
 
   return (
     <mesh ref={meshRef}>
@@ -66,10 +71,10 @@ const ComputersCanvas = () => {
     <Canvas
       frameloop='demand'
       shadows
-      dpr={[1, isMobile ? 1.5 : 2]}
+      dpr={[1, isMobile ? 1.5 : 2]} // Adjusting DPI for mobile
       camera={{ 
         position: isMobile ? [10, 2, 5] : [20, 3, 5], 
-        fov: isMobile ? 35 : 25 
+        fov: isMobile ? 35 : 25 // Adjusting FOV for mobile
       }}
       gl={{ preserveDrawingBuffer: true }}
     >
@@ -90,4 +95,3 @@ const ComputersCanvas = () => {
 };
 
 export default ComputersCanvas;
-
