@@ -66,7 +66,7 @@ const ComputersCanvas = () => {
           minPolarAngle={Math.PI / 2}
           enablePan={false}
           enableRotate={true}
-           target={isMobile ? [-5.5, 3.5, -1.5] : [0, 0, 0]} // Match target to the model's position
+           target={isMobile ? [-5.5, 9.5, -1.5] : [0, 0, 0]} // Match target to the model's position
         />
         <Computers isMobile={isMobile} />
       </Suspense>
