@@ -22,8 +22,8 @@ const Computers = ({ isMobile }) => {
       />
       <primitive
         object={model.scene}
-        scale={isMobile ? 0.07 : 0.75} // Adjusted for mobile
-        position={isMobile ? [-5.5, -10, -1.5] : [0, -3.25, -1.5]} // Adjusted for mobile
+        scale={isMobile ? 0.01 : 0.75} // Adjusted for mobile
+        position={isMobile ? [-5.5, -5.2, -1.5] : [0, -3.25, -1.5]} // Adjusted for mobile
         rotation={isMobile ? [0.01, 0, 0] : [-0.01, -0.2, -0.1]} // Adjusted for mobile
       />
     </mesh>
@@ -66,7 +66,7 @@ const ComputersCanvas = () => {
           minPolarAngle={Math.PI / 2}
           enablePan={false}
           enableRotate={true}
-           target={isMobile ? [-5.5, 9.5, -1.5] : [0, 0, 0]} // Match target to the model's position
+           target={isMobile ? [-5.5, 0.5, -1.5] : [0, 0, 0]} // Match target to the model's position
         />
         <Computers isMobile={isMobile} />
       </Suspense>
