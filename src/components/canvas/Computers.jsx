@@ -1,27 +1,32 @@
 import React, { Suspense, useEffect, useState } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
 import CanvasLoader from "../Loader";
-import { isMobile as detectMobile } from 'react-device-detect';
 
-// Model component with dynamic viewport-based scaling
+// Helper to detect actual mobile devices
+const isMobileDevice = () => {
+  return (
+    typeof window !== 'undefined' && 
+    (navigator.userAgent.match(/Android/i) ||
+    navigator.userAgent.match(/webOS/i) ||
+    navigator.userAgent.match(/iPhone/i) ||
+    navigator.userAgent.match(/iPad/i) ||
+    navigator.userAgent.match(/iPod/i) ||
+    navigator.userAgent.match(/BlackBerry/i) ||
+    navigator.userAgent.match(/Windows Phone/i))
+  );
+};
+
 const Computers = ({ isMobile }) => {
   const desktopModel = useGLTF("./desktop_pc/scene.gltf");
   const mobileModel = useGLTF("./iphone_13_concept/scene.gltf");
   const model = isMobile ? mobileModel : desktopModel;
+
+  // Get device pixel ratio
+  const pixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
   
-  // Get viewport dimensions for dynamic scaling
-  const { viewport } = useThree();
-  
-  // Calculate scale based on viewport width
-  const mobileScale = Math.min(viewport.width * 0.15, 0.7);
-  
-  // Dynamic positioning based on viewport
-  const mobilePosition = [
-    0,
-    -viewport.height * 0.2,
-    -2
-  ];
+  // Adjust scale based on device pixel ratio for mobile
+  const mobileScale = 0.01 * (pixelRatio > 2 ? (2 / pixelRatio) : 1);
 
   return (
     <mesh>
@@ -38,8 +43,8 @@ const Computers = ({ isMobile }) => {
       <primitive
         object={model.scene}
         scale={isMobile ? mobileScale : 0.75}
-        position={isMobile ? mobilePosition : [0, -3.25, -1.5]}
-        rotation={isMobile ? [-0.01, -0.2, -0.1] : [-0.01, -0.2, -0.1]}
+        position={isMobile ? [-5.5, -5.2, -1.5] : [0, -3.25, -1.5]}
+        rotation={isMobile ? [0.01, 0, 0] : [-0.01, -0.2, -0.1]}
       />
     </mesh>
   );
@@ -49,27 +54,24 @@ const ComputersCanvas = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Use react-device-detect instead of media queries
-    setIsMobile(detectMobile);
-
-    // Fallback to viewport width check for tablets
-    const checkTablet = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      const aspectRatio = width / height;
-      return (width <= 1024 && aspectRatio < 1.2) || detectMobile;
+    // Combine media query with actual device detection
+    const checkMobile = () => {
+      const mediaQuery = window.matchMedia("(max-width: 500px)");
+      return mediaQuery.matches || isMobileDevice();
     };
+
+    setIsMobile(checkMobile());
 
     const handleResize = () => {
-      setIsMobile(checkTablet());
+      setIsMobile(checkMobile());
     };
 
-    // Initial check
-    handleResize();
-
-    // Add event listener for orientation changes and resizes
     window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
+
+    // Also check on orientation change
+    window.addEventListener('orientationchange', () => {
+      setTimeout(handleResize, 100);
+    });
 
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -81,16 +83,15 @@ const ComputersCanvas = () => {
     <Canvas
       frameloop="demand"
       shadows={!isMobile}
-      dpr={[1, 2]} // Consistent DPR for better performance
+      dpr={[1, isMobile ? Math.min(window.devicePixelRatio, 2) : 2]}
       camera={{
-        position: isMobile ? [0, 0, 12] : [20, 3, 5],
-        fov: isMobile ? 40 : 25,
-        near: 0.1,
-        far: 200
+        position: isMobile ? [10, 5, 8] : [20, 3, 5],
+        fov: isMobile ? 50 : 25,
       }}
       gl={{ 
         preserveDrawingBuffer: true,
-        antialias: true // Better quality on mobile
+        powerPreference: "high-performance",
+        antialias: true
       }}
     >
       <Suspense fallback={<CanvasLoader />}>
