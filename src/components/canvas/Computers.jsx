@@ -26,7 +26,7 @@ const Computers = ({ isMobile }) => {
   const pixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
   
   // Adjust scale based on device pixel ratio for mobile
-  const mobileScale = 0.03 * (pixelRatio > 2 ? (2 / pixelRatio) : 1);
+  const mobileScale = 0.015 * (pixelRatio > 2 ? (2 / pixelRatio) : 1);
 
   return (
     <mesh>
