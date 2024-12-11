@@ -1,12 +1,27 @@
 import React, { Suspense, useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
 import CanvasLoader from "../Loader";
+import { isMobile as detectMobile } from 'react-device-detect';
 
+// Model component with dynamic viewport-based scaling
 const Computers = ({ isMobile }) => {
   const desktopModel = useGLTF("./desktop_pc/scene.gltf");
   const mobileModel = useGLTF("./iphone_13_concept/scene.gltf");
   const model = isMobile ? mobileModel : desktopModel;
+  
+  // Get viewport dimensions for dynamic scaling
+  const { viewport } = useThree();
+  
+  // Calculate scale based on viewport width
+  const mobileScale = Math.min(viewport.width * 0.15, 0.7);
+  
+  // Dynamic positioning based on viewport
+  const mobilePosition = [
+    0,
+    -viewport.height * 0.2,
+    -2
+  ];
 
   return (
     <mesh>
@@ -22,9 +37,9 @@ const Computers = ({ isMobile }) => {
       />
       <primitive
         object={model.scene}
-        scale={isMobile ? 0.01 : 0.75} // Adjusted for mobile
-        position={isMobile ? [-5.5, -5.2, -1.5] : [0, -3.25, -1.5]} // Adjusted for mobile
-        rotation={isMobile ? [0.01, 0, 0] : [-0.01, -0.2, -0.1]} // Adjusted for mobile
+        scale={isMobile ? mobileScale : 0.75}
+        position={isMobile ? mobilePosition : [0, -3.25, -1.5]}
+        rotation={isMobile ? [-0.01, -0.2, -0.1] : [-0.01, -0.2, -0.1]}
       />
     </mesh>
   );
@@ -34,17 +49,31 @@ const ComputersCanvas = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 500px)");
-    setIsMobile(mediaQuery.matches);
+    // Use react-device-detect instead of media queries
+    setIsMobile(detectMobile);
 
-    const handleMediaQueryChange = (event) => {
-      setIsMobile(event.matches);
+    // Fallback to viewport width check for tablets
+    const checkTablet = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const aspectRatio = width / height;
+      return (width <= 1024 && aspectRatio < 1.2) || detectMobile;
     };
 
-    mediaQuery.addEventListener("change", handleMediaQueryChange);
+    const handleResize = () => {
+      setIsMobile(checkTablet());
+    };
+
+    // Initial check
+    handleResize();
+
+    // Add event listener for orientation changes and resizes
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
 
     return () => {
-      mediaQuery.removeEventListener("change", handleMediaQueryChange);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
     };
   }, []);
 
@@ -52,12 +81,17 @@ const ComputersCanvas = () => {
     <Canvas
       frameloop="demand"
       shadows={!isMobile}
-      dpr={[1, isMobile ? 1.5 : 2]}
+      dpr={[1, 2]} // Consistent DPR for better performance
       camera={{
-        position: isMobile ? [100, 5, 8] : [20, 3, 5], // Adjusted camera position for mobile
-        fov: isMobile ? 50 : 25, // Adjusted field of view for mobile
+        position: isMobile ? [0, 0, 12] : [20, 3, 5],
+        fov: isMobile ? 40 : 25,
+        near: 0.1,
+        far: 200
       }}
-      gl={{ preserveDrawingBuffer: true }}
+      gl={{ 
+        preserveDrawingBuffer: true,
+        antialias: true // Better quality on mobile
+      }}
     >
       <Suspense fallback={<CanvasLoader />}>
         <OrbitControls
@@ -66,15 +100,13 @@ const ComputersCanvas = () => {
           minPolarAngle={Math.PI / 2}
           enablePan={false}
           enableRotate={true}
-           target={isMobile ? [-5.5, 0.5, -1.5] : [0, 0, 0]} // Match target to the model's position
+          target={isMobile ? [-5.5, 0.5, -1.5] : [0, 0, 0]}
         />
         <Computers isMobile={isMobile} />
       </Suspense>
 
       <Preload all />
     </Canvas>
-
-    
   );
 };
 
