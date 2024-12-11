@@ -3,7 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
 import CanvasLoader from "../Loader";
 
-// Helper to detect actual mobile devices
+
 const isMobileDevice = () => {
   return (
     typeof window !== 'undefined' && 
