@@ -23,6 +23,7 @@ import threejs from "./tech/threejs.svg";
 import Java from "./tech/Java.png"
 import Python from "./tech/Python.png"
 import Postgresql from "./tech/Postgresql.png"
+import nextjs from "./tech/next-js.png"
 
 import meta from "./company/meta.png";
 import shopify from "./company/shopify.png";
@@ -56,6 +57,7 @@ export {
   mongodb,
   nodejs,
   reactjs,
+  nextjs,
   redux,
   tailwind,
   typescript,

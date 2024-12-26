@@ -28,6 +28,7 @@ import {
     Java,
     Python,
     Postgresql,
+    nextjs,
     SecondHand,
     AIS,
     Waste,
@@ -68,20 +69,21 @@ import {
   ];
   
   const technologies = [
+    
     {
-      name: "HTML 5",
-      icon: html,
+      name: "nextjs",
+      icon: nextjs,
     },
     {
-      name: "CSS 3",
-      icon: css,
+      name: "TypeScript",
+      icon: typescript,
     },
     {
       name: "JavaScript",
       icon: javascript,
     },
     {
-      name: "TypeScript",
+      name: "Java",
       icon: Java,
     },
     {
